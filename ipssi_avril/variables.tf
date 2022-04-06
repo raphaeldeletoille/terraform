@@ -40,9 +40,5 @@ variable "resource_group" {
      name = "rg-raph-us"
      location = "West US"
     },
-    "rg03" = {
-     name = "rg-raph2-us"
-     location = "West US"
-    },
   }
 }
