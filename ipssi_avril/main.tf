@@ -51,9 +51,9 @@ resource "azurerm_key_vault" "keyvault" {
   sku_name = "standard"
 
   network_acls {
-    bypass = "None"
-    default_action = "Deny"
-    ip_rules = ["2.10.224.249"]
+    bypass                     = "None"
+    default_action             = "Deny"
+    ip_rules                   = ["2.10.224.249"]
     virtual_network_subnet_ids = azurerm_subnet.subnet[*].id
   }
 
@@ -168,7 +168,7 @@ resource "azurerm_private_endpoint" "private-endpoint2" {
 
   private_service_connection {
     name                           = "raphconnection"
-    private_connection_resource_id = azurerm_mssql_server.sqlserver.id 
+    private_connection_resource_id = azurerm_mssql_server.sqlserver.id
     is_manual_connection           = false
     subresource_names              = ["sqlServer"] #GROUP_ID
   }
@@ -198,7 +198,7 @@ resource "azurerm_network_interface" "networkcard" {
     name                          = "internal"
     subnet_id                     = azurerm_subnet.subnet[0].id
     private_ip_address_allocation = "Dynamic"
-    public_ip_address_id = azurerm_public_ip.publicip.id
+    public_ip_address_id          = azurerm_public_ip.publicip.id
   }
 }
 
@@ -213,9 +213,9 @@ resource "azurerm_windows_virtual_machine" "vm" {
     azurerm_network_interface.networkcard.id,
   ]
 
- boot_diagnostics {
-   storage_account_uri = azurerm_storage_account.storage.primary_blob_endpoint
- }
+  boot_diagnostics {
+    storage_account_uri = azurerm_storage_account.storage.primary_blob_endpoint
+  }
 
   os_disk {
     caching              = "ReadWrite"
@@ -230,20 +230,22 @@ resource "azurerm_windows_virtual_machine" "vm" {
   }
 }
 
-#1 DISK SUPP
-resource "azurerm_managed_disk" "disk01" {
-  name                 = "disk01"
-  location             = azurerm_resource_group.rg.location
-  resource_group_name  = azurerm_resource_group.rg.name
-  storage_account_type = "Standard_LRS"
-  create_option        = "Empty"
-  disk_size_gb         = "1"
+#CREER 2 RG, 1 AUX US, 1 EN EUROPE
+
+resource "azurerm_resource_group" "all_rg" {
+  for_each = var.resource_group
+
+  name     = each.value.name
+  location = each.value.location
 }
 
-resource "azurerm_virtual_machine_data_disk_attachment" "attachdisk" {
-  managed_disk_id    = azurerm_managed_disk.disk01.id
-  virtual_machine_id = azurerm_windows_virtual_machine.vm.id
-  lun                = "10"
-  caching            = "ReadWrite"
-}
+#AJOUTER 3 DISKS EN FOREACH ET LES ATTACHER SUR NOTRE VM. 
+#1 = 10
+#2 = 5
+#3 = 20
+
+#AJOUTER DES TAGS DIFFERENTS 
+#1 = tag = disk = 1
+#2 = tag = disk = 2
+#3 = tag = disk = 3
 

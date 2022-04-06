@@ -30,16 +30,19 @@ variable "ip_vnet" {
 }
 
 variable "resource_group" {
-  type = map(any)
+  type = map 
   default = {
     "rg01" = {
-      name     = "rg01"
-      location = "West Europe"
+     name = "rg-raph-europe"
+     location = "West Europe"
     },
     "rg02" = {
-      name     = "rg02"
-      location = "West US"
-    }
+     name = "rg-raph-us"
+     location = "West US"
+    },
+    "rg03" = {
+     name = "rg-raph2-us"
+     location = "West US"
+    },
   }
 }
-
