@@ -29,4 +29,17 @@ variable "ip_vnet" {
   default = ["10.0.0.0/16"]
 }
 
+variable "resource_group" {
+  type = map(any)
+  default = {
+    "rg01" = {
+      name     = "rg01"
+      location = "West Europe"
+    },
+    "rg02" = {
+      name     = "rg02"
+      location = "West US"
+    }
+  }
+}
 

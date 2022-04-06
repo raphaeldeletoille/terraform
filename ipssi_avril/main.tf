@@ -174,6 +174,76 @@ resource "azurerm_private_endpoint" "private-endpoint2" {
   }
 }
 
+#DEPLOYER UNE VM WINDOWS SERVER, AVEC LA SIZE LA MOINS CHER Standard_B1ls. #NO SCALE. #NO REDUNDANCY. HDD DISK .#NO PUBLIC IP
 
-#DEPLOYER UN PRIVATE ENDPOINT ET UNE PRIVATE SERVICE CONNECTION SUR VOTRE SQL SERVEUR SUR UN DE VOS SUBNETS
+
+#DEPLOYER 1 DISK SUPPLEMENTAIRE A ATTACHER A VOTRE VM
+
+
+#A FAIRE SI VOUS VOULEZ : BOOT DIAGNOSTIC
+
+resource "azurerm_public_ip" "publicip" {
+  name                = "raphIP"
+  resource_group_name = azurerm_resource_group.rg.name
+  location            = azurerm_resource_group.rg.location
+  allocation_method   = "Static"
+}
+
+resource "azurerm_network_interface" "networkcard" {
+  name                = "raph-nic"
+  location            = azurerm_resource_group.rg.location
+  resource_group_name = azurerm_resource_group.rg.name
+
+  ip_configuration {
+    name                          = "internal"
+    subnet_id                     = azurerm_subnet.subnet[0].id
+    private_ip_address_allocation = "Dynamic"
+    public_ip_address_id = azurerm_public_ip.publicip.id
+  }
+}
+
+resource "azurerm_windows_virtual_machine" "vm" {
+  name                = "raph-vm"
+  resource_group_name = azurerm_resource_group.rg.name
+  location            = azurerm_resource_group.rg.location
+  size                = "Standard_B1ls"
+  admin_username      = "adminuser"
+  admin_password      = "P@$$w0rd1234!"
+  network_interface_ids = [
+    azurerm_network_interface.networkcard.id,
+  ]
+
+ boot_diagnostics {
+   storage_account_uri = azurerm_storage_account.storage.primary_blob_endpoint
+ }
+
+  os_disk {
+    caching              = "ReadWrite"
+    storage_account_type = "Standard_LRS"
+  }
+
+  source_image_reference {
+    publisher = "MicrosoftWindowsServer"
+    offer     = "WindowsServer"
+    sku       = "2016-Datacenter"
+    version   = "latest"
+  }
+}
+
+#1 DISK SUPP
+resource "azurerm_managed_disk" "disk01" {
+  name                 = "disk01"
+  location             = azurerm_resource_group.rg.location
+  resource_group_name  = azurerm_resource_group.rg.name
+  storage_account_type = "Standard_LRS"
+  create_option        = "Empty"
+  disk_size_gb         = "1"
+}
+
+resource "azurerm_virtual_machine_data_disk_attachment" "attachdisk" {
+  managed_disk_id    = azurerm_managed_disk.disk01.id
+  virtual_machine_id = azurerm_windows_virtual_machine.vm.id
+  lun                = "10"
+  caching            = "ReadWrite"
+}
 
