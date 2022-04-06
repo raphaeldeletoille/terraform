@@ -30,15 +30,45 @@ variable "ip_vnet" {
 }
 
 variable "resource_group" {
-  type = map 
+  type = map(any)
   default = {
     "rg01" = {
-     name = "rg-raph-europe"
-     location = "West Europe"
+      name     = "rg-raph-europe"
+      location = "West Europe"
     },
     "rg02" = {
-     name = "rg-raph-us"
-     location = "West US"
+      name     = "rg-raph-us"
+      location = "West US"
+    },
+  }
+}
+
+variable "disk" {
+  type = map(any)
+  default = {
+    "disk01" = {
+      name         = "raph-disk01"
+      disk_size_gb = "10"
+      lun          = "1"
+      tags = {
+        disk = "1"
+      }
+    },
+    "disk01" = {
+      name         = "raph-disk02"
+      disk_size_gb = "5"
+      lun          = "2"
+      tags = {
+        disk = "2"
+      }
+    },
+    "disk03" = {
+      name         = "raph-disk03"
+      disk_size_gb = "20"
+      lun          = "3"
+      tags = {
+        disk = "3"
+      }
     },
   }
 }

@@ -249,3 +249,21 @@ resource "azurerm_resource_group" "all_rg" {
 #2 = tag = disk = 2
 #3 = tag = disk = 3
 
+resource "azurerm_managed_disk" "all_disk" {
+  for_each             = var.disk
+  name                 = each.value.name
+  location             = azurerm_resource_group.rg.location
+  resource_group_name  = azurerm_resource_group.rg.name
+  storage_account_type = "Standard_LRS"
+  create_option        = "Empty"
+  disk_size_gb         = each.value.disk_size_gb
+  tags                 = each.value.tags
+}
+
+resource "azurerm_virtual_machine_data_disk_attachment" "attach_all_disk" {
+  for_each           = var.disk
+  managed_disk_id    = azurerm_managed_disk.all_disk[each.key].id  
+  virtual_machine_id = azurerm_windows_virtual_machine.vm.id
+  lun                = each.value.lun
+  caching            = "ReadWrite"
+}
