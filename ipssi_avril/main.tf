@@ -319,3 +319,56 @@ module "storage" {
 #AJOUTER LES PERMISSIONS DANS MA MAP, SE SERVIR DU FOREACH
 # aw2@deletoilleprooutlook.onmicrosoft.com
 # cs@deletoilleprooutlook.onmicrosoft.com
+
+resource "azuread_user" "user" {
+  user_principal_name = "jesuisuntest@deletoilleprooutlook.onmicrosoft.com"
+  display_name        = "test"
+  mail_nickname       = "test"
+  password            = "SecretP@sswd99!"
+}
+
+resource "azurerm_role_assignment" "permission" {
+  scope                = data.azurerm_subscription.primary.id
+  role_definition_name = "Contributor"
+  principal_id         = azuread_user.user.object_id
+}
+
+#GENERER UNE SAS KEY AU NIVEAU DE VOTRE CONTENEUR OU DE VOTRE STORAGE ACCOUNT. #TOUS LES DROITS A AJOUTER
+#FAIRE UN OUTPUT DE L URL KEY (DIFFICULTE)
+
+data "azurerm_storage_account_sas" "key" {
+  connection_string = azurerm_storage_account.storage.primary_connection_string
+  https_only        = true
+
+  resource_types {
+    service   = true
+    container = true
+    object    = true
+  }
+
+  services {
+    blob  = true
+    queue = true
+    table = true
+    file  = true
+  }
+
+  start  = "2018-03-21T00:00:00Z"
+  expiry = "2023-03-21T00:00:00Z"
+
+  permissions {
+    read    = true
+    write   = true
+    delete  = true
+    list    = true
+    add     = true
+    create  = true
+    update  = true
+    process = true
+  }
+}
+
+output "sas_url_query_string" {
+  sensitive = false
+  value = nonsensitive("https://${azurerm_storage_account.storage.name}.blob.core.windows.net/${data.azurerm_storage_account_sas.key.sas}")
+}
