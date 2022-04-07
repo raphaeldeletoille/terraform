@@ -262,7 +262,7 @@ resource "azurerm_managed_disk" "all_disk" {
 
 resource "azurerm_virtual_machine_data_disk_attachment" "attach_all_disk" {
   for_each           = var.disk
-  managed_disk_id    = azurerm_managed_disk.all_disk[each.key].id  
+  managed_disk_id    = azurerm_managed_disk.all_disk[each.key].id
   virtual_machine_id = azurerm_windows_virtual_machine.vm.id
   lun                = each.value.lun
   caching            = "ReadWrite"
@@ -271,9 +271,27 @@ resource "azurerm_virtual_machine_data_disk_attachment" "attach_all_disk" {
 #MODULE QUI VA ME CREER UNE DATABASE SUR MON SQL SERVER (DATABASE LA MOINS CHERE EN GENERAL PURPOSE SERVERLESS).
 
 module "storage_monitor" {
-  source = "../Modules/logs"
-  target_resource_name = azurerm_storage_account.storage.name
-  target_resource_id   = azurerm_storage_account.storage.id
+  source                       = "../Modules/logs" #"github.com/raphaeldeletoille/terraform/tree/main/Modules/logs"
+  target_resource_name         = azurerm_storage_account.storage.name
+  target_resource_id           = azurerm_storage_account.storage.id
   log_analytics_workspace_name = azurerm_log_analytics_workspace.loganalytics.name
   log_analytics_workspace_id   = azurerm_log_analytics_workspace.loganalytics.id
 }
+
+module "database" {
+  source = "../Modules/sql"
+  for_each = var.databases
+
+  name                         = each.key
+  server_id                    = azurerm_mssql_server.sqlserver.id
+  collation                    = each.value.collation
+  min_capacity                 = each.value.min_capacity
+  max_size_gb                  = each.value.max_size_gb
+  auto_pause_delay_in_minutes  = each.value.auto_pause_delay_in_minutes
+  sku_name                     = each.value.sku_name
+  log_analytics_workspace_name = azurerm_log_analytics_workspace.loganalytics.name
+  log_analytics_workspace_id   = azurerm_log_analytics_workspace.loganalytics.id
+}
+
+#MODULE DEPLOYER UN STORAGE ACCOUNT, UN FIREWALL SUR VOTRE STORAGE ACCOUNT QUI AUTORISE VOTRE IP PUBLIC ET VOS SUBNETS.
+#SI VOUS VOULEZ, COPIER MON MODULE LOG EN LOCAL, ET L UTILISER POUR MONITORER VOTRE STORAGE ACCOUNT (VOIR EXEMPLE DANS MON MAIN.TF) 
