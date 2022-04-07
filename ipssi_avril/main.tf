@@ -143,7 +143,7 @@ resource "azurerm_subnet" "subnet" {
   virtual_network_name                           = azurerm_virtual_network.vnet.name
   address_prefixes                               = ["10.0.${count.index}.0/24"]
   enforce_private_link_endpoint_network_policies = true
-  service_endpoints                              = ["Microsoft.KeyVault"]
+  service_endpoints                              = ["Microsoft.KeyVault", "Microsoft.Storage"]
 }
 
 resource "azurerm_private_endpoint" "private-endpoint" {
@@ -279,19 +279,43 @@ module "storage_monitor" {
 }
 
 module "database" {
-  source = "../Modules/sql"
+  source   = "../Modules/sql"
   for_each = var.databases
 
-  name                         = each.key
-  server_id                    = azurerm_mssql_server.sqlserver.id
-  collation                    = each.value.collation
-  min_capacity                 = each.value.min_capacity
-  max_size_gb                  = each.value.max_size_gb
-  auto_pause_delay_in_minutes  = each.value.auto_pause_delay_in_minutes
-  sku_name                     = each.value.sku_name
+  name                        = each.key
+  server_id                   = azurerm_mssql_server.sqlserver.id
+  collation                   = each.value.collation
+  min_capacity                = each.value.min_capacity
+  max_size_gb                 = each.value.max_size_gb
+  auto_pause_delay_in_minutes = each.value.auto_pause_delay_in_minutes
+  sku_name                    = each.value.sku_name
+
   log_analytics_workspace_name = azurerm_log_analytics_workspace.loganalytics.name
   log_analytics_workspace_id   = azurerm_log_analytics_workspace.loganalytics.id
 }
 
 #MODULE DEPLOYER UN STORAGE ACCOUNT, UN FIREWALL SUR VOTRE STORAGE ACCOUNT QUI AUTORISE VOTRE IP PUBLIC ET VOS SUBNETS.
 #SI VOUS VOULEZ, COPIER MON MODULE LOG EN LOCAL, ET L UTILISER POUR MONITORER VOTRE STORAGE ACCOUNT (VOIR EXEMPLE DANS MON MAIN.TF) 
+
+
+module "storage" {
+  source = "../Modules/storage"
+
+  name                       = "raphstorage2"
+  resource_group_name        = azurerm_resource_group.rg.name
+  location                   = azurerm_resource_group.rg.location
+  ip_rules                   = ["2.10.224.249"]
+  virtual_network_subnet_ids = azurerm_subnet.subnet[*].id
+}
+
+
+#CREER UN USER AAD / GROUP AAD
+#LUI ASSIGNER LES DROITS "CONTRIBUTOR" sur ma souscription
+
+
+#OPTIONNEL 
+#AJOUTER UN BLOCK PERMISSION DANS VOTRE MODULE DATABASE 
+#AJOUTER LES DROITS READER sur deux comptes que vous allez déclarer dans vos variables
+#AJOUTER LES PERMISSIONS DANS MA MAP, SE SERVIR DU FOREACH
+# aw2@deletoilleprooutlook.onmicrosoft.com
+# cs@deletoilleprooutlook.onmicrosoft.com

@@ -74,23 +74,15 @@ variable "disk" {
 }
 
 variable "databases" {
-  type = map
+  type = map(any)
   default = {
     "raphdatabase01" = {
       collation                   = "SQL_LATIN1_GENERAL_CP1_CI_AS"
       max_size_gb                 = "10"
       min_capacity                = "1"
-      sku_name                    = "GP_S_Gen5_1"
       auto_pause_delay_in_minutes = "60"
       sku_name                    = "GP_S_Gen5_1"
 
-    },
-    "raphdatabase02" = {
-      collation                   = "SQL_LATIN1_GENERAL_CP1_CI_AS"
-      max_size_gb                 = "10"
-      min_capacity                = "1"
-      auto_pause_delay_in_minutes = "60"
-      sku_name                    = "GP_S_Gen5_1"
     },
   }
 }
