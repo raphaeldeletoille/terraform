@@ -267,3 +267,13 @@ resource "azurerm_virtual_machine_data_disk_attachment" "attach_all_disk" {
   lun                = each.value.lun
   caching            = "ReadWrite"
 }
+
+#MODULE QUI VA ME CREER UNE DATABASE SUR MON SQL SERVER (DATABASE LA MOINS CHERE EN GENERAL PURPOSE SERVERLESS).
+
+module "storage_monitor" {
+  source = "../Modules/logs"
+  target_resource_name = azurerm_storage_account.storage.name
+  target_resource_id   = azurerm_storage_account.storage.id
+  log_analytics_workspace_name = azurerm_log_analytics_workspace.loganalytics.name
+  log_analytics_workspace_id   = azurerm_log_analytics_workspace.loganalytics.id
+}
